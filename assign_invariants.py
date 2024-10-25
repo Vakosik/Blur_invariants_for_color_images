@@ -30,7 +30,7 @@ def compute_img_n_temp_invariants(img, temps, temp_sz, order, img_name, method, 
     print("number of invariants in each combination:", invs_counts)
 
     if img_invariants == '' or img_invariants == 'save':
-        print("Computing invariants of the image in all possible templates...")
+        print("Computing invariants of the image in all patches...")
         img_invs = get_image_invariants(img, invs_counts, order, N, combs, temp_sz, temp_normalization,
                                         typennum)
         if img_invariants == 'save':
@@ -44,7 +44,7 @@ def compute_img_n_temp_invariants(img, temps, temp_sz, order, img_name, method, 
     print("Computing invariants of the chosen templates...")
     temp_invs = get_template_invariants(temps, invs_counts, order, N, combs, typennum)
 
-    return img_invs, temp_invs, sum(invs_counts)
+    return img_invs, temp_invs
 
 
 def get_image_invariants(img, invs_counts, order, N, combs, temp_sz, temp_normalization, typennum):
@@ -67,7 +67,7 @@ def get_image_invariants(img, invs_counts, order, N, combs, temp_sz, temp_normal
             else:
                 gm = central_moments(segment, r=order)
 
-            for idx, comb in enumerate(combs, 1):
+            for idx, comb in enumerate(combs):
                 start = sum(invs_counts[:idx])
                 stop = sum(invs_counts[:idx+1])
                 if len(comb) == 1:
@@ -103,7 +103,7 @@ def get_template_invariants(temps, invs_counts, order, N, combs, typennum):
         else:
             gm = central_moments(temps[temp], r=order)
 
-        for idx, comb in enumerate(combs, 1):
+        for idx, comb in enumerate(combs):
             start = sum(invs_counts[:idx])
             stop = sum(invs_counts[:idx+1])
             if len(comb) == 1:

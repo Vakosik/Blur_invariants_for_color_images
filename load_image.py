@@ -2,6 +2,7 @@ import rawpy
 import numpy as np
 import cv2
 from skimage import img_as_float
+import os
 
 def raw_to_rgb(raw):
     """
@@ -23,20 +24,20 @@ def raw_to_rgb(raw):
     return rgb_img
 
 
-def load_n_process_image(fname, downscale, method, invs_comb):
+def load_n_process_image(full_img_name, subfolder, downscale, method, invs_comb):
     """
     Loads and process image with chosen settings
     """
-    if "CR2" in fname:
-        raw = rawpy.imread("images/" + fname)
+    if "CR2" in full_img_name:
+        raw = rawpy.imread(os.path.join("images", subfolder, full_img_name))
         image = raw_to_rgb(raw)
         if (invs_comb == (['gray']) and 'crosscorr' not in method) or method == 'gray_croscorr':
             image = np.mean(image, axis=2)
     else:
         if (invs_comb == (['gray']) and 'crosscorr' not in method) or method == 'gray_crosscorr':
-            image = cv2.imread("images/" + fname, flags=cv2.IMREAD_GRAYSCALE)
+            image = cv2.imread(os.path.join("images", subfolder, full_img_name), flags=cv2.IMREAD_GRAYSCALE)
         else:
-            image = cv2.imread("images/" + fname)
+            image = cv2.imread(os.path.join("images", subfolder, full_img_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         image = cv2.resize(image, (0, 0), fx=1/downscale, fy=1/downscale)

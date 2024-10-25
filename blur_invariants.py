@@ -44,7 +44,7 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
     or is unconstrained.
 
     cmm is a matrix of moments of a certain channel
-    r is the maximum order of the invariants, so the size of cmm is >= (r+1) x (r+1).
+    r is the maximum order of the invariants, so the size of cmm is = (r+1) x (r+1).
     N is the fold number of the rotation symmetry of the PSF.
     If N==np.inf, circular symmetry of PSF is supposed
     If N==1, unconstrained PSF is supposed
