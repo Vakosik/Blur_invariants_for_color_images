@@ -1,0 +1,2 @@
+Folder for saving detected positions of templates by the chosen method.
+The files have the form [y_position, x_position, error, L2 distance from ground truth].
