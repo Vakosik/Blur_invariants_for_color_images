@@ -71,12 +71,12 @@ def get_image_invariants(img, invs_counts, order, N, combs, temp_sz, temp_normal
                 start = sum(invs_counts[:idx])
                 stop = sum(invs_counts[:idx+1])
                 if len(comb) == 1:
-                    row_invariants[c, start:stop] = blur_invariants(gm[:, :, int(comb)], order, N=N, typex=0,
-                                                                    typen=typennum)
+                    row_invariants[c, start:stop], _ = blur_invariants(gm[:, :, int(comb)], order, N=N, typex=0,
+                                                                       typen=typennum)
                 elif comb == 'gray':
-                    row_invariants[c, :] = blur_invariants(gm, order, N=N, typex=0, typen=typennum)
+                    row_invariants[c, :], _ = blur_invariants(gm, order, N=N, typex=0, typen=typennum)
                 else:
-                    row_invariants[c, start:stop] = blur_invariants(gm[:, :, int(comb[0])], order, N=N,
+                    row_invariants[c, start:stop], _ = blur_invariants(gm[:, :, int(comb[0])], order, N=N,
                                                                     cmm2=gm[:,:, int(comb[1])], typex=0, typen=typennum)
 
         return row_invariants
@@ -107,12 +107,13 @@ def get_template_invariants(temps, invs_counts, order, N, combs, typennum):
             start = sum(invs_counts[:idx])
             stop = sum(invs_counts[:idx+1])
             if len(comb) == 1:
-                temp_invs[temp, start:stop] = blur_invariants(gm[:, :, int(comb)], order, N=N, typex=0, typen=typennum)
+                temp_invs[temp, start:stop], _ = blur_invariants(gm[:, :, int(comb)], order, N=N, typex=0,
+                                                                 typen=typennum)
             elif comb == 'gray':
-                temp_invs[temp, :] = blur_invariants(gm, order, N=N, typex=0, typen=typennum)
+                temp_invs[temp, :], _ = blur_invariants(gm, order, N=N, typex=0, typen=typennum)
             else:
-                temp_invs[temp, start:stop] = blur_invariants(gm[:, :, int(comb[0])], order, N=N,
-                                                              cmm2=gm[:, :, int(comb[1])], typex=0, typen=typennum)
+                temp_invs[temp, start:stop], _ = blur_invariants(gm[:, :, int(comb[0])], order, N=N,
+                                                                 cmm2=gm[:, :, int(comb[1])], typex=0, typen=typennum)
 
     return temp_invs
 
@@ -126,9 +127,9 @@ def invs_counter(order, inv_kind, N):
     gm_sample[0, 0] = 1
 
     if inv_kind == 'single_channel':
-        inv_sample = blur_invariants(gm_sample, order, N=N, typex=0, typen=0)
+        inv_sample, _ = blur_invariants(gm_sample, order, N=N, typex=0, typen=0)
     else:
-        inv_sample = blur_invariants(gm_sample, order, N=N, cmm2=gm_sample, typex=0, typen=0)
+        inv_sample, _ = blur_invariants(gm_sample, order, N=N, cmm2=gm_sample, typex=0, typen=0)
 
     number_of_invs = len(inv_sample)
 

@@ -120,4 +120,4 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
         invmat /= scaling_factor
         inv /= scaling_factor2
 
-    return inv
+    return inv, invmat
