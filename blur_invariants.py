@@ -39,6 +39,31 @@ def central_moments(l, r):
     return M
 
 
+def complex_moments(order, gm):
+    # Compute complex moments c_{pq} from geometric moments gm
+    # up to the specified order.
+    #
+    # Input arguments
+    # ---
+    #   order ... maximum order of moments
+    #   gm    ... matrix of geometric moments (order +1) x (order +1)
+    #
+    # Output arguments
+    # ---
+    #   c ... matrix of complex moments
+
+    c = np.zeros((order + 1, order + 1), dtype=np.cdouble)
+    for p in range(order + 1):
+        for q in range(order+1-p):
+            for k in range(p+1):
+                pk = comb(p, k)
+                for j in range(q+1):
+                    qj = comb(q, j)
+                    c[p, q] = c[p, q] + pk * qj * (-1)**(q - j) * 1j**(p + q - k - j
+                                                                            ) * gm[k + j, p + q - k - j]
+    return c
+
+
 def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
     """computes moment invariants to convolution where point spread function (PSF) has N-fold rotation symmetry
     or is unconstrained.
@@ -49,6 +74,7 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
     If N==np.inf, circular symmetry of PSF is supposed
     If N==1, unconstrained PSF is supposed
     If N>1 finite, then rotation N-fold symmetry of PSF is supposed.
+    If the moments are geometric, N should be 1 or 2 (geometric moments don't separate the moments otherwise)
     If cmm2 is passed, then cross-channel blur invariants are computed
     typec and typex are types of moments, typen is normalization:
     typec=0 means general moments, typec=1 means central moments,
@@ -63,7 +89,12 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
     of C(ind(1,k),ind(2,k)), if ind(3,k)==1, it is the value of
     the imaginary part."""
 
-    invmat = np.zeros((r + 1, r + 1))
+    if typex == 0:
+        dtype = float
+    else:
+        dtype = np.cdouble
+
+    invmat = np.zeros((r + 1, r + 1), dtype)
     index = 0
     inv = np.array([])
     ind = np.zeros((1, 3))
@@ -89,20 +120,20 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
             else:
                 invmat[p, q] = cmm[0, 0] * cmm2[p, q] - s
 
-            if ((cmm2 is None and (p - q) % N != 0)
-                or (cmm2 is not None and (p - q) % N == 0 and (p+q) > 0)) and (typec == 0 or p + q > 1):
+            if ((p+q) > 0) and (typec == 0 or p + q > 1):
                 if typex == 0:
                     inv = np.append(inv, invmat[p, q])
                     ind = np.vstack((ind, np.array([p, q, 0])))
                     index += 1
                 else:
-                    if p > q:
+                    if p >= q:
                         inv = np.append(inv, np.real(invmat[p, q]))
                         ind = np.vstack((ind, [p, q, 0]))
                         index += 1
-                        inv = np.append(inv, np.imag(invmat[p, q]))
-                        ind = np.vstack((ind, [p, q, 1]))
-                        index += 1
+                        if p > q:
+                            inv = np.append(inv, np.imag(invmat[p, q]))
+                            ind = np.vstack((ind, [p, q, 1]))
+                            index += 1
 
     ind = ind[1:]
     index -= 1

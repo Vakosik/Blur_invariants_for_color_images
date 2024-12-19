@@ -6,7 +6,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 
-def template_matching(img, img_temp, temp_pos, temp_sz, order, img_name, method='centrosym_invs',
+def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name, method='centrosym_invs',
                       invs_comb=('0', '1', '2', '10', '21'), img_invariants='', size_of_blur=21, blur_type="square",
                       temp_normalization=False, typennum=0):
     """
@@ -51,7 +51,7 @@ def template_matching(img, img_temp, temp_pos, temp_sz, order, img_name, method=
     n_temp = temps.shape[0]
 
     if 'crosscorr' not in method:
-        image_invs, temp_invs = compute_img_n_temp_invariants(img, temps, temp_sz, order, img_name, method,
+        image_invs, temp_invs = compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name, method,
                                                              invs_comb, img_invariants, temp_normalization,
                                                              typennum)
         del temps, img

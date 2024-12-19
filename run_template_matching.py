@@ -17,8 +17,9 @@ full_img_name = "sharp01.JPG"
 img_name = os.path.splitext(full_img_name)[0]
 # Multiple by which the sharp and blurred images will be downsampled
 downscale = 2
-# Either "square", "T", "square_padded, "T_padded" or name of an image that is a blurred version of full_img_name
-blur_type = "square"
+# Either "square", "square_padded", "T", "T_padded", "triangle", "triangle_padded", "disk", "disk_padded",
+# or name of an image that is a blurred version of full_img_name
+blur_type = "disk"
 # the size of blurring kernel. It has impact only if blur_type is "square" or "T", not separate image
 size_of_blur = 33
 # Path to npy file with upper left corners (in pixels) of selected templates (templates are in rows,
@@ -27,19 +28,23 @@ selected_templates = img_name + "_100temp_positions.npy"
 # We will load the left upper corners of templates. The user chooses template size in pixels,
 # but if it extends outside the image size, the template is not selected
 temp_sz = 100
-# Right now, the options are "centrosym_invs", "unconstrained_invs", "RGB_crosscorr", "gray_croscorr"
-method = 'centrosym_invs'
+# Right now, the options are "N?fold_invs", "RGB_crosscorr", "gray_croscorr". The ? in N?fold_invs corresponds to N-fold
+# symmetry assumption that we put on the blurring kernel. If ? = 1, then unconstrained blur is assumed.
+method = 'N2fold_invs'
 # invs_comb has an effect only if croscorr is not selected for invs_type. It indicates the invariants I_jk used for
 # the template matching experiment. One digit refers to single-channel invs, two digits denote cross-channel invariants,
 # (['gray']) denotes invariants computed from intensities
 invs_comb = ('0', '1', '2', '10', '21')
 # the maximum order of moments (does not have an effect for cross-correlation)
 order = 5
+# If True, complex moments are used. Otherwise, central geometric moments are used. We must select complex moments if
+# N-fold symmetry of blur kernel is assumed and N > 2. (It does not have an effect for cross-correlation)
+complex = True
 # In case of real blur, we normalize the mean of templates. (It does not have an effect for cross-correlation)
 temp_normalization = False
 # Normalizing invariants to similar scale when 1. In the paper, it was used only for template matching with
 # computer-generated blur as it slightly improved results. (It does not have an effect for cross-correlation)
-typennum = 1
+typennum = 0
 # Computing image invariants in all patches is time-demanding. If you have already computed them for the selected
 # sharp image, place it to the computed_invs folder and assign full name of the npy file to image_invariants.
 # If you want to save computed invariants after this run, assign 'save' to image_invariants. If neither of these two,
@@ -68,7 +73,7 @@ print(f"Shape of the sharp image {full_img_name}:", img_sharp.shape)
 temp_pos = np.load(os.path.join("templates", subfolder, selected_templates))
 print(f"Templates were loaded from {selected_templates}")
 
-detect_pos = template_matching(img_sharp, img_blurred, temp_pos, temp_sz, order, img_name, method, invs_comb,
+detect_pos = template_matching(img_sharp, img_blurred, temp_pos, temp_sz, order, complex, img_name, method, invs_comb,
                                img_invariants, size_of_blur, blur_type, temp_normalization, typennum)
 
 if "." in blur_type:

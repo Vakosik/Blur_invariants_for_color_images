@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.signal import convolve
+import math
 
 
 def create_T_blur(size):
@@ -27,6 +28,37 @@ def create_T_blur(size):
     return kernel
 
 
+def create_triangle_vertices_kernel(size):
+    """
+    Function designing a 3-fold blur kernel of equilateral triangle. Intensities are only in the vertices.
+    The kernel is centered to the center of mass. In the discrete case, we cannot design the perfect equilateral
+    triangle, but the approximation should be decent.
+    """
+
+    height = int(np.ceil((size / 2) / math.tan(math.pi / 6)))
+    kernel = np.zeros((height, size), dtype=np.float64)
+
+    kernel[0, int(size / 2)] = 1
+    kernel[-1, 0] = 1
+    kernel[-1, -1] = 1
+
+    row_padding = np.zeros((int(height / 3), size))
+    kernel = np.vstack((kernel, row_padding))
+
+    kernel /= np.sum(kernel)
+
+    return kernel
+
+
+def create_disk_kernel(size):
+    y, x = np.mgrid[:size, :size]
+    kernel = np.hypot(y - (size - 1) / 2, x - (size - 1) / 2) < (size + 1) / 2
+    kernel = kernel.astype(np.float64)
+    kernel /= np.sum(kernel)
+
+    return kernel
+
+
 def blur(i, size=3, btype="square"):
     """
     Blur by convolution. Right now either "square" kernel or "T" kernel
@@ -37,6 +69,10 @@ def blur(i, size=3, btype="square"):
         kernel = np.ones((size, size)) / (size ** 2)
     elif btype == "T":
         kernel = create_T_blur(size)
+    elif btype == "triangle":
+        kernel = create_triangle_vertices_kernel(size)
+    elif btype == "disk":
+        kernel = create_disk_kernel(size)
 
     if len(i.shape) > 2:
         for channel in range(i.shape[2]):
