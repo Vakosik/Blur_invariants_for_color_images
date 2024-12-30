@@ -2,10 +2,11 @@ import numpy as np
 from blur_invariants import central_moments, complex_moments, blur_invariants
 from joblib import Parallel, delayed
 from tqdm import tqdm
+import os
 
 
 def compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name, method, combs, img_invariants,
-                                  temp_normalization, typennum):
+                                  temp_normalization, typennum, subfolder):
     """
     Computes invariants in all patches in img and for all templates in temps. If img_invariants is a name of npy
     file with already computed invariants in all patches, then it just loads it. If img_invariants=='save' then it
@@ -31,11 +32,15 @@ def compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name,
         img_invs = get_image_invariants(img, invs_counts, order, complex, N, combs, temp_sz, temp_normalization,
                                         typennum)
         if img_invariants == 'save':
-            invs_name = (f'computed_invs/{img_name}_r_{order}_{method}_inv_comb_{combs}_temp_sz_{temp_sz}'
-                          f'_typen{typennum}_tempnorm{temp_normalization}_BtempSimg').replace(" ", "")
+            if not os.path.exists(f'computed_invs/{subfolder}/{img_name}'):
+                os.makedirs(f'computed_invs/{subfolder}/{img_name}')
+            invs_name = os.path.join('computed_invs', subfolder, img_name,
+                                     f'{img_name}_r_{order}_{method}_inv_comb_{combs}_temp_sz_{temp_sz}'
+                                     f'_typen{typennum}_tempnorm{temp_normalization}_BtempSimg'
+                                     .replace(" ", ""))
             np.save(f'{invs_name}.npy', img_invs)
     else:
-        img_invs = np.load(f'computed invs/{img_invariants}')
+        img_invs = np.load(f'computed_invs/{subfolder}/{img_name}/{img_invariants}')
         print(f"Image invariants loaded from {img_invariants}.")
 
     print("Computing invariants of the chosen templates...")
