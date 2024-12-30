@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name, method='centrosym_invs',
                       invs_comb=('0', '1', '2', '10', '21'), img_invariants='', size_of_blur=21, blur_type="square",
-                      temp_normalization=False, typennum=0):
+                      temp_normalization=False, typennum=0, subfolder=''):
     """
     Search for the templates in image img and return the best match
     Input arguments
@@ -53,7 +53,7 @@ def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name
     if 'crosscorr' not in method:
         image_invs, temp_invs = compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name, method,
                                                              invs_comb, img_invariants, temp_normalization,
-                                                             typennum)
+                                                             typennum, subfolder)
         del temps, img
 
     print("Detecting positions of templates by comparing the invariants or taking the maximum of cross-correlation...")
