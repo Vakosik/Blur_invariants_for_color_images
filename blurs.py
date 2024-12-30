@@ -96,6 +96,8 @@ def template_padding_blur(template, size_of_blur, blur_type):
         template_padded = np.pad(template, ((padsize, padsize), (padsize, padsize)),
                                  'constant', constant_values=0)
 
-    template_blured = blur(template_padded, size=size_of_blur, btype=blur_type)
+    btype = blur_type[:-7]
+
+    template_blured = blur(template_padded, size=size_of_blur, btype=btype)
 
     return template_blured
