@@ -87,7 +87,13 @@ def template_padding_blur(template, size_of_blur, blur_type):
     """
     Padding sharp templates with zero and then blurring them with chosen kernel
     """
-    padsize = int((size_of_blur - 1) / 2)
+    btype = blur_type[:-7]
+
+    if btype == 'triangle':
+        kernel = create_triangle_vertices_kernel(size_of_blur)
+        padsize = int(max(kernel.shape[0], kernel.shape[1])/2)
+    else:
+        padsize = int(size_of_blur / 2)
 
     if len(template.shape) > 2:
         template_padded = np.pad(template, ((padsize, padsize), (padsize, padsize), (0, 0)),
@@ -95,8 +101,6 @@ def template_padding_blur(template, size_of_blur, blur_type):
     else:
         template_padded = np.pad(template, ((padsize, padsize), (padsize, padsize)),
                                  'constant', constant_values=0)
-
-    btype = blur_type[:-7]
 
     template_blured = blur(template_padded, size=size_of_blur, btype=btype)
 
