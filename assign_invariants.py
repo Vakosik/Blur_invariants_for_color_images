@@ -1,12 +1,12 @@
 import numpy as np
-from blur_invariants import central_moments, complex_moments, blur_invariants
+from blur_invariants import central_moments, complex_moments, blur_invariants, average_center
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import os
 
 
 def compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name, method, combs, img_invariants,
-                                  temp_normalization, typennum, subfolder):
+                                  temp_normalization, typennum, subfolder, moment_type, one_center):
     """
     Computes invariants in all patches in img and for all templates in temps. If img_invariants is a name of npy
     file with already computed invariants in all patches, then it just loads it. If img_invariants=='save' then it
@@ -19,7 +19,7 @@ def compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name,
     for comb in combs:
         if len(comb) == 1 or comb == 'gray':
             inv_kind = 'single_channel'
-            if method == "unconstrained_invs":
+            if method == 'N1fold_invs':
                 raise Exception("Only cross-channel invariants for unconstrained blur exist. Use only two-digits "
                                 "elements in invs_comb")
         else:
@@ -30,26 +30,29 @@ def compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name,
     if img_invariants == '' or img_invariants == 'save':
         print("Computing invariants of the image in all patches...")
         img_invs = get_image_invariants(img, invs_counts, order, complex, N, combs, temp_sz, temp_normalization,
-                                        typennum)
+                                        typennum, one_center)
         if img_invariants == 'save':
             if not os.path.exists(f'computed_invs/{subfolder}/{img_name}'):
                 os.makedirs(f'computed_invs/{subfolder}/{img_name}')
             invs_name = os.path.join('computed_invs', subfolder, img_name,
-                                     f'{img_name}_r_{order}_{method}_inv_comb_{combs}_temp_sz_{temp_sz}'
+                                     f'{img_name}_r_{order}_{method}_{moment_type}_inv_comb_{combs}_temp_sz_{temp_sz}'
                                      f'_typen{typennum}_tempnorm{temp_normalization}_BtempSimg'
                                      .replace(" ", ""))
             np.save(f'{invs_name}.npy', img_invs)
     else:
         img_invs = np.load(f'computed_invs/{subfolder}/{img_name}/{img_invariants}')
+        if combs == ('0', '1', '2'):
+            img_invs = img_invs[:, :, :sum(invs_counts)]
+            # no need to compute single-channel invariants again if they are included in the saved complete set
         print(f"Image invariants loaded from {img_invariants}.")
 
     print("Computing invariants of the chosen templates...")
-    temp_invs = get_template_invariants(temps, invs_counts, order, complex, N, combs, typennum)
+    temp_invs = get_template_invariants(temps, invs_counts, order, complex, N, combs, typennum, one_center)
 
     return img_invs, temp_invs
 
 
-def get_image_invariants(img, invs_counts, order, complex, N, combs, temp_sz, temp_normalization, typennum):
+def get_image_invariants(img, invs_counts, order, complex, N, combs, temp_sz, temp_normalization, typennum, one_center):
     s = (np.array(img.shape) - temp_sz + 1).astype(int)
     img_invs = np.zeros((s[0], s[1], sum(invs_counts)))
 
@@ -62,10 +65,14 @@ def get_image_invariants(img, invs_counts, order, complex, N, combs, temp_sz, te
                 segment /= np.mean(segment)
 
             if len(img.shape) > 2:
+                if one_center:
+                    tx, ty = average_center(segment)
+                else:
+                    tx, ty = None, None
                 gm = np.zeros((order+1, order+1, 3))
-                gm[:, :, 0] = central_moments(segment[:, :, 0], r=order)
-                gm[:, :, 1] = central_moments(segment[:, :, 1], r=order)
-                gm[:, :, 2] = central_moments(segment[:, :, 2], r=order)
+                gm[:, :, 0] = central_moments(segment[:, :, 0], r=order, tx=tx, ty=ty)
+                gm[:, :, 1] = central_moments(segment[:, :, 1], r=order, tx=tx, ty=ty)
+                gm[:, :, 2] = central_moments(segment[:, :, 2], r=order, tx=tx, ty=ty)
             else:
                 gm = central_moments(segment, r=order)
 
@@ -99,16 +106,20 @@ def get_image_invariants(img, invs_counts, order, complex, N, combs, temp_sz, te
     return img_invs
 
 
-def get_template_invariants(temps, invs_counts, order, complex, N, combs, typennum):
+def get_template_invariants(temps, invs_counts, order, complex, N, combs, typennum, one_center):
     n_temp = len(temps)
     temp_invs = np.zeros((n_temp, sum(invs_counts)))
 
     for temp in range(n_temp):
         if len(temps[temp].shape) > 2:
+            if one_center:
+                tx, ty = average_center(temps[temp])
+            else:
+                tx, ty = None, None
             gm = np.zeros((order + 1, order + 1, 3))
-            gm[:, :, 0] = central_moments(temps[temp, :, :, 0], r=order)
-            gm[:, :, 1] = central_moments(temps[temp, :, :, 1], r=order)
-            gm[:, :, 2] = central_moments(temps[temp, :, :, 2], r=order)
+            gm[:, :, 0] = central_moments(temps[temp, :, :, 0], r=order, tx=tx, ty=ty)
+            gm[:, :, 1] = central_moments(temps[temp, :, :, 1], r=order, tx=tx, ty=ty)
+            gm[:, :, 2] = central_moments(temps[temp, :, :, 2], r=order, tx=tx, ty=ty)
         else:
             gm = central_moments(temps[temp], r=order)
 

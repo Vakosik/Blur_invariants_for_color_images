@@ -105,3 +105,15 @@ def template_padding_blur(template, size_of_blur, blur_type):
     template_blured = blur(template_padded, size=size_of_blur, btype=btype)
 
     return template_blured
+
+
+def add_noise(image, sigma):
+    if sigma == 0:
+        return image
+
+    row, col, ch = image.shape
+    mean = 0
+    gauss = np.random.normal(mean, sigma, (row, col, ch))
+    noisy_image = image + gauss
+
+    return noisy_image

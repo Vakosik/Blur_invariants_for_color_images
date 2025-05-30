@@ -13,7 +13,7 @@ def correlation(templ, img):
     return np.array([row, column, max_c])
 
 
-def compare_invariants(IF, TF):
+def compare_invariants(IF, TF, norm=1):
     """
     Compares blur invariants of a template with blur invariants of all possible patches in an image. The minimum of
     L2 norm of relative errors in the feature space is chosen as the best match.
@@ -23,7 +23,7 @@ def compare_invariants(IF, TF):
     """
     RE = np.abs(IF-TF) / np.abs(IF)
 
-    norm_RE = np.linalg.norm(RE, axis=2)
+    norm_RE = np.linalg.norm(RE, ord=norm, axis=2)
 
     NRE = np.min(norm_RE)
     if len(np.where(norm_RE == NRE)[0]) > 1 or len(np.where(norm_RE == NRE)[1]) > 1:

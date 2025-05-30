@@ -6,9 +6,9 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 
-def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name, method='centrosym_invs',
+def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name, moment_type, method='centrosym_invs',
                       invs_comb=('0', '1', '2', '10', '21'), img_invariants='', size_of_blur=21, blur_type="square",
-                      temp_normalization=False, typennum=0, subfolder=''):
+                      temp_normalization=False, typennum=0, subfolder='', one_center=True, norm=1):
     """
     Search for the templates in image img and return the best match
     Input arguments
@@ -53,7 +53,7 @@ def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name
     if 'crosscorr' not in method:
         image_invs, temp_invs = compute_img_n_temp_invariants(img, temps, temp_sz, order, complex, img_name, method,
                                                              invs_comb, img_invariants, temp_normalization,
-                                                             typennum, subfolder)
+                                                             typennum, subfolder, moment_type, one_center)
         del temps, img
 
     print("Detecting positions of templates by comparing the invariants or taking the maximum of cross-correlation...")
@@ -62,7 +62,7 @@ def template_matching(img, img_temp, temp_pos, temp_sz, order, complex, img_name
         if 'crosscorr' in method:
             ypos, xpos, NRE = correlation(temps[z], img)
         else:
-            ypos, xpos, NRE = compare_invariants(image_invs.copy(), temp_invs[z])
+            ypos, xpos, NRE = compare_invariants(image_invs.copy(), temp_invs[z], norm)
 
         distance = np.linalg.norm(temp_pos[z] - [ypos, xpos])
 

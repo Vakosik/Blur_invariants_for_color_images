@@ -2,24 +2,48 @@ import numpy as np
 from math import comb
 
 
-def central_moments(l, r):
+def average_center(l):
+    n1, n2, n3 = l.shape
+    tx_stack = []
+    ty_stack = []
+
+    for channel in range(n3):
+        m00 = np.sum(l[:,:,channel])
+
+        w = np.arange(1, n2 + 1)
+        v = np.arange(1, n1 + 1)
+
+        if m00 != 0:
+            tx_stack.append(np.sum(l[:,:,channel] * w) / m00)
+            ty_stack.append(np.sum(v * np.transpose(l[:,:,channel])) / m00)
+        else:
+            tx_stack.append(0)
+            ty_stack.append(0)
+
+    tx = np.mean(np.array(tx_stack))
+    ty = np.mean(np.array(ty_stack))
+
+    return tx, ty
+
+
+def central_moments(l, r, tx=None, ty=None):
     """ M is a matrix of central moments up to the r-th order of the image l
         l - image matrix
         The moment μ_{pq} = M(p+1,q+1) """
 
     n1, n2 = l.shape
 
-    m00 = np.sum(l)
-
     w = np.arange(1, n2 + 1)
     v = np.arange(1, n1 + 1)
 
-    if m00 != 0:
-        tx = np.sum(l * w) / m00
-        ty = np.sum(v * np.transpose(l)) / m00
-    else:
-        tx = 0
-        ty = 0
+    if tx is None or ty is None:
+        m00 = np.sum(l)
+        if m00 != 0:
+            tx = np.sum(l * w) / m00
+            ty = np.sum(v * np.transpose(l)) / m00
+        else:
+            tx = 0
+            ty = 0
 
     a = w - tx
     c = v - ty
@@ -32,7 +56,7 @@ def central_moments(l, r):
             C = np.power(c, j)
             M[i, j] = np.matmul(C, np.matmul(l, A))
 
-    if r > 0:
+    if r > 0 and (tx is None or tx is None):
         M[0, 1] = 0
         M[1, 0] = 0
 
