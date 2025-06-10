@@ -2,6 +2,7 @@ Blur moment invariants (both single-channel and cross-channel) are in "blur_inva
 
 All template matching experiments can run by "run_template_matching.py". Both padding and no_padding options are available as well as invariant and cross-correlation methods. All results from the paper can be replicated by running corresponding loops (images, method, size_of_blur/template_size). 
 The used images and templates are saved in "images" and "templates" folders.
+![sharp08_templates_sz_100_handmade](https://github.com/user-attachments/assets/eae60f6c-8c35-4327-93ce-2cdc88e98f99)
 
 Parameter setting for the Pattern Recognition paper:
 subfolder = 'synthetic_blur_experiment' or 'real_blur_experiment';
