@@ -21,4 +21,11 @@ temp_normalization = False, but True for 'real_blur_experiment';
 typennum = 1;
 sigma = 0, but sigma = np.arange(0.0, 0.4001, 0.02) for testing the relative errors under noise
 
+The code was expanded and made more general for IPTA paper. The differences in settings:
+blur_type = "triangle";
+size_of_blur in np.arange(9, 64, 6) (the triangle blur is much stronger);
+method = 'N2fold_invs' or "N3fold_invs";
+complex = True;
+norm = 1;
+
 The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images used in the paper. You can modify the two moment invariants used for feature space visualisation.
