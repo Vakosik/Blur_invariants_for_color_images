@@ -30,3 +30,4 @@ norm = 1;
 typennum = 0;
 
 The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images used in the paper. You can modify the two moment invariants used for feature space visualisation.
+![road_signs_together](https://github.com/user-attachments/assets/62dc8cfd-189d-45ee-b824-ef4f97561e6e)
