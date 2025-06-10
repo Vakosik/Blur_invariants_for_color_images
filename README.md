@@ -4,21 +4,37 @@ All template matching experiments can run by "run_template_matching.py". Both pa
 The used images and templates are saved in "images" and "templates" folders.
 
 Parameter setting for the Pattern Recognition paper:
+
 subfolder = 'synthetic_blur_experiment' or 'real_blur_experiment'
+
 full_img_name in [f"sharp{i:02}.JPG" for i in range(0, 15)]
+
 downscale = 2
+
 blur_type = "square" or "T" or "square_padded" or "T_padded" depending on the experiment
+
 size_of_blur in np.arange(9, 100, 6)
+
 selected_templates = img_name + "_100temp_positions.npy"
+
 temp_sz = 100
+
 method = 'N1fold_invs' or 'N2fold_invs' or "RGB_crosscorr" or "gray_croscorr"
+
 invs_comb in [('0', '1', '2', '10', '21'), ('0', '1', '2'), (['gray'])]
+
 order = 5
+
 complex = False
+
 one_center = True
+
 norm = 2
+
 temp_normalization = False, but True for 'real_blur_experiment'
+
 typennum = 1
+
 sigma = 0, but sigma = np.arange(0.0, 0.4001, 0.02) for testing the relative errors under noise
 
 The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images used in the paper. You can modify the two moment invariants used for feature space visualisation.
