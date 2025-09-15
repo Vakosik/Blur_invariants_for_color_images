@@ -1,3 +1,5 @@
+The paper can be found at https://doi.org/10.1016/j.patcog.2025.112358
+
 Blur moment invariants (both single-channel and cross-channel) are in "blur_invariants.py". For now, there are only invariants to blur with N-fold symmetry PSF and unconstrained blur. Remember to use complex moments if N > 2.
 
 All template matching experiments can run by "run_template_matching.py". Both padding and no_padding options are available as well as invariant and cross-correlation methods. All results from the paper can be replicated by running corresponding loops (images, method, size_of_blur/template_size). 
