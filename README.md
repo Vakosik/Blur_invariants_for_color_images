@@ -1,4 +1,5 @@
 The paper about blur invariants to color images can be found at https://doi.org/10.1016/j.patcog.2025.112358
+
 The repository was later extended by invariants to both blur and channel-mixing. The user can switch the invariants by a parameter channel_mixing in run_template_matching.py.
 
 Blur moment invariants (both single-channel and cross-channel) are in "blur_invariants.py". For now, there are only invariants to blur with N-fold symmetry PSF and unconstrained blur. Remember to use complex moments if N > 2.
