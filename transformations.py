@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import convolve
 import math
+from sklearn.decomposition import PCA
 
 
 def create_T_blur(size):
@@ -63,6 +64,9 @@ def blur(i, size=3, btype="square"):
     """
     Blur by convolution. Right now either "square" kernel or "T" kernel
     """
+    if size == 0:
+        return i
+
     i_blured = np.zeros_like(i)
 
     if btype == "square":
@@ -117,3 +121,60 @@ def add_noise(image, sigma):
     noisy_image = image + gauss
 
     return noisy_image
+
+def rgb_to_pca(img, n_components=3):
+    H, W, C = img.shape
+    assert C == 3, "Expected RGB image with 3 channels"
+
+    # Flatten to (N, 3) where N = H * W
+    X = img.reshape(-1, 3).astype(np.float64)
+    N = X.shape[0]
+
+    # Scatter matrix about the origin: S = (1/N) X^T X
+    S = (X.T @ X) / N   # shape (3, 3)
+
+    # Eigen-decomposition: S v = λ v
+    eigvals, eigvecs = np.linalg.eigh(S)  # columns of eigvecs are eigenvectors
+
+    # Sort eigenvalues/vectors in descending order
+    idx = np.argsort(eigvals)[::-1]
+    eigvals = eigvals[idx]
+    eigvecs = eigvecs[:, idx]  # still (3, 3)
+    A = eigvecs[:, :n_components].T  # (n_components, 3)
+
+    X_pca = X @ A.T  # shape (N, n_components)
+    pca_img = X_pca.reshape(H, W, n_components)
+
+    return pca_img
+
+
+def rgb_to_ycbcr(img):
+    M = np.array([
+        [0.299, 0.587, 0.114],
+        [-0.168736, -0.331264, 0.5],
+        [0.5, -0.418688, -0.081312]
+    ])
+
+    ycbcr = img @ M.T
+
+    return ycbcr
+
+
+def mixing_channels(image, w):
+    i_combined = np.zeros_like(image)
+    i_combined[:, :, 0] = w[0, 0] * image[:, :, 0] + w[0, 1] * image[:, :, 1] + w[0, 2] * image[:, :, 2]
+    i_combined[:, :, 1] = w[1, 0] * image[:, :, 0] + w[1, 1] * image[:, :, 1] + w[1, 2] * image[:, :, 2]
+    i_combined[:, :, 2] = w[2, 0] * image[:, :, 0] + w[2, 1] * image[:, :, 1] + w[2, 2] * image[:, :, 2]
+
+    return i_combined
+
+
+def nearest_multiple_of_14(a, b):
+    def nearest(n):
+        remainder = n % 14
+        if remainder < 7:
+            return n - remainder
+        else:
+            return n + (14 - remainder)
+
+    return nearest(a), nearest(b)

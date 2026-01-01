@@ -1,0 +1,2 @@
+Folder for saving invariants to blur and channel-mixing of images in all patches.
+The array should have the size [H - temp_sz + 1, W - temp_sz + 1, # of invariants] where H, W is the size of the image.

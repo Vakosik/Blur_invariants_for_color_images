@@ -21,6 +21,8 @@ def compare_invariants(IF, TF, norm=1):
     :param TF: Blur invariants of a template
     :return:
     """
+    IF[IF == 0] = 1e-10
+
     RE = np.abs(IF-TF) / np.abs(IF)
 
     norm_RE = np.linalg.norm(RE, ord=norm, axis=2)

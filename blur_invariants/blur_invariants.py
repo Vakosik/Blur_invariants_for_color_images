@@ -56,9 +56,9 @@ def central_moments(l, r, tx=None, ty=None):
             C = np.power(c, j)
             M[i, j] = np.matmul(C, np.matmul(l, A))
 
-    if r > 0 and (tx is None or tx is None):
-        M[0, 1] = 0
-        M[1, 0] = 0
+    # if r > 0 and (tx is None or tx is None):
+    #     M[0, 1] = 0
+    #     M[1, 0] = 0
 
     return M
 
@@ -105,7 +105,7 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
     typex=0 means geometric moments, typex=1 means complex moments.
     typen=0 no normalization, typen=1 scaling normalization
 
-    inv is vector of the invariants,
+    invvec is vector of the invariants,
     invmat are the invariants in matrix form, C(p,q)=invmat(p,q).
     ind is matrix of indices, ind(1,k) is p-index of the k-th invariant,
     ind(2,k) is its q-index and ind(3,k) is indicator of imaginarity,
@@ -120,7 +120,7 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
 
     invmat = np.zeros((r + 1, r + 1), dtype)
     index = 0
-    inv = np.array([])
+    invvec = np.array([])
     ind = np.zeros((1, 3))
 
     for current_order in range(r + 1):
@@ -144,20 +144,7 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
             else:
                 invmat[p, q] = cmm[0, 0] * cmm2[p, q] - s
 
-            if ((p+q) > 0) and (typec == 0 or p + q > 1):
-                if typex == 0:
-                    inv = np.append(inv, invmat[p, q])
-                    ind = np.vstack((ind, np.array([p, q, 0])))
-                    index += 1
-                else:
-                    if p >= q:
-                        inv = np.append(inv, np.real(invmat[p, q]))
-                        ind = np.vstack((ind, [p, q, 0]))
-                        index += 1
-                        if p > q:
-                            inv = np.append(inv, np.imag(invmat[p, q]))
-                            ind = np.vstack((ind, [p, q, 1]))
-                            index += 1
+            invvec, ind, index = build_invvec(p, q, invvec, invmat, ind, index, typec, typex)
 
     ind = ind[1:]
     index -= 1
@@ -173,6 +160,25 @@ def blur_invariants(cmm, r, N, cmm2=None, typec=1, typex=0, typen=0):
             scaling_factor2 = (0.5 * (abs(cmm[0][0]) + abs(cmm2[0][0]))) ** ((ind[:, 0] + ind[:, 1] + 4) / 2)
 
         invmat /= scaling_factor
-        inv /= scaling_factor2
+        invvec /= scaling_factor2
 
-    return inv, invmat
+    return invvec, invmat
+
+
+def build_invvec(p, q, invvec, invmat, ind, index, typec, typex):
+    if ((p + q) > 0) and (typec == 0 or p + q > 1):
+        if typex == 0:
+            invvec = np.append(invvec, invmat[p, q])
+            ind = np.vstack((ind, np.array([p, q, 0])))
+            index += 1
+        else:
+            if p >= q:
+                invvec = np.append(invvec, np.real(invmat[p, q]))
+                ind = np.vstack((ind, [p, q, 0]))
+                index += 1
+                if p > q:
+                    invvec = np.append(invvec, np.imag(invmat[p, q]))
+                    ind = np.vstack((ind, [p, q, 1]))
+                    index += 1
+
+    return invvec, ind, index

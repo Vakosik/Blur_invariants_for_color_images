@@ -1,5 +1,5 @@
-from blurs import blur
-from blur_invariants import central_moments, blur_invariants
+from transformations import blur
+from blur_invariants.blur_invariants import central_moments, blur_invariants
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
