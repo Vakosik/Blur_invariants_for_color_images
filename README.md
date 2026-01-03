@@ -63,7 +63,7 @@ a = 0
 (C_indices of no relevance when channel_mixing=False)
 
 
-The code was expanded and made more general for the IPTA conference paper (). We performed there an experiment with synethetic blur, the differences in settings:
+The code was expanded and made more general for the IPTA conference paper (https://doi.org/10.1109/IPTA66025.2025.11222047). We performed there an experiment with synethetic blur, the differences in settings:
 blur_type = "triangle" or "triangle_padded";
 size_of_blur in np.arange(9, 64, 6) (the triangle blur is much stronger);
 method = 'N2fold_invs' or "N3fold_invs";
