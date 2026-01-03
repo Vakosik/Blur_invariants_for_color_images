@@ -71,7 +71,7 @@ complex = True;
 norm = 1;
 typennum = 0;
 
-The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images. In the PR article, we briefly explain that single-channel blur invariants constructed for N2-fold symmetric PSFs are trivial for centrosymmetric objects, but the new cross-channel invariants are able to dinstinguish between them. Eventually, there was not enough space for this experiments because of revisions, but I keep it in the repository.
+The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images. In the PR article, we briefly explain that single-channel blur invariants constructed for N2-fold symmetric PSFs are trivial for centrosymmetric objects, but the new cross-channel invariants are able to dinstinguish between them. Eventually, there was not enough space for this experiments due to revisions, but I keep it in the repository.
 ![road_signs_together](https://github.com/user-attachments/assets/62dc8cfd-189d-45ee-b824-ef4f97561e6e)
 
 # Invariants to blur and channel-mixing (IEEE TIP article)
