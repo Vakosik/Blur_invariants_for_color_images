@@ -12,7 +12,7 @@ Template matching experiments can be run by "run_template_matching.py". There is
 
 The user can switch between the invariants (blur vs blur-and-channel-mixing) by a boolean parameter "channel_mixing" in run_template_matching.py.
 
-The IEEE TIP article contains template matching experiment using DINOv2 features. This is implemented in DINOv2_template_matching.py. The settings used in the paper is:  mid_block_idx = 9, P = 14, separate_crops = True, tokens_mode = 'except_cls', patch_norm = True
+The IEEE TIP article contains template matching experiment using DINOv2 features. This is implemented in DINOv2_template_matching.py. The settings used in the paper is:  mid_block_idx = 9, P = 14, separate_crops = True, tokens_mode = 'except_cls', patch_norm = True.
 The DINOv2 script is fully functional, but I would like to get to some code cleaning for better readibility.
 
 # Blur Invariants (PR article)
