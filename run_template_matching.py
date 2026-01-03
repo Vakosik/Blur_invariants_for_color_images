@@ -132,7 +132,7 @@ save_path = f'{folder}/detected_positions/{subfolder}/square_blur_new_vs_old_inv
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-# np.save(f'{save_path}/{det_positions_file_name}'.replace(" ", ""),
-#         detect_pos)
+np.save(f'{save_path}/{det_positions_file_name}'.replace(" ", ""),
+        detect_pos)
 print(detect_pos)
 
