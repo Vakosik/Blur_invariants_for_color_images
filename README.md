@@ -77,6 +77,7 @@ The experiment with recognizing of centrosymmetric objects is present in "recogn
 # Invariants to blur and channel-mixing (IEEE TIP article)
 The implementation of the invariants can be found in "blur_n_channelmixing_invariants/blur_channelmixing_invariants.py". There is a 2-channel and a 3-channel version (but formula for a general c-channel image is written in the article).
 
+### Parameter setting for the IEEE TIP paper:
 synthetic blur experiment:
 subfolder = 'synthetic_blur_experiment';
 full_img_name in [f"sharp{i:02}.JPG" for i in range(0, 15)];
