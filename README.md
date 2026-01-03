@@ -35,20 +35,20 @@ order = 5;
 complex = False;
 one_center = True;
 norm = 2;
-temp_normalization = False
+temp_normalization = False;
 typennum = 1;
-sigma = 0 (but sigma = np.arange(0.0, 0.4001, 0.02) for testing the relative errors under noise)
-channel_mixing = False
-a = 0
+sigma = 0 (but sigma = np.arange(0.0, 0.4001, 0.02) for testing the relative errors under noise);
+channel_mixing = False;
+a = 0;
 (C_indices of no relevance when channel_mixing=False)
 
 real blur experiment:
 subfolder = 'real_blur_experiment';
 full_img_name in [f"sharp{i:02}.CR2" for i in range(0, 3)];
 blur_type = "blurred0i.CR2" where i=0,1,2
-size_of_blur = 0
+size_of_blur = 0;
 selected_templates = img_name + "_100temp_positions.npy";
-temp_sz = np.arange(50, 151, 10)
+temp_sz = np.arange(50, 151, 10);
 method = 'N2fold_invs' or "RGB_crosscorr" or "gray_croscorr";
 invs_comb in [('0', '1', '2', '10', '21'), ('0', '1', '2'), (['gray'])];
 order = 5;
@@ -57,9 +57,9 @@ one_center = True;
 norm = 2;
 temp_normalization = True
 typennum = 1;
-sigma = 0
-channel_mixing = False
-a = 0
+sigma = 0;
+channel_mixing = False;
+a = 0;
 (C_indices of no relevance when channel_mixing=False)
 
 
@@ -69,7 +69,7 @@ size_of_blur in np.arange(9, 64, 6) (the triangle blur is much stronger);
 method = 'N2fold_invs' or "N3fold_invs";
 complex = True;
 norm = 1;
-typennum = 0;
+typennum = 0
 
 The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images. In the PR article, we briefly explain that single-channel blur invariants constructed for N2-fold symmetric PSFs are trivial for centrosymmetric objects, but the new cross-channel invariants are able to dinstinguish between them. Eventually, there was not enough space for this experiments due to revisions, but I keep it in the repository.
 ![road_signs_together](https://github.com/user-attachments/assets/62dc8cfd-189d-45ee-b824-ef4f97561e6e)
@@ -93,17 +93,17 @@ one_center = False;
 norm = 1;
 temp_normalization = False
 typennum = 0;
-sigma = 0
-channel_mixing = True
-a in [0, 0.2, 0.3]
-C_indices = [[(0,0)], [(1,0)], [(1,0)], [(0,1)]]
+sigma = 0;
+channel_mixing = True;
+a in [0, 0.2, 0.3];
+C_indices = [[(0,0)], [(1,0)], [(1,0)], [(0,1)]];
 (inv_comb of no relevance when channel_mixing=True)
 
 real blur experiment:
 subfolder = 'real_blur_experiment';
 full_img_name in [f"sharp{i:02}.CR2" for i in range(0, 3)];
-blur_type = "blurred0i.CR2" where i=0,1,2
-size_of_blur = 0
+blur_type = "blurred0i.CR2" where i=0,1,2;
+size_of_blur = 0;
 selected_templates = img_name + "_100temp_positions.npy";
 temp_sz = np.arange(56, 155, 14)
 method = 'N2fold_invs';
@@ -113,8 +113,8 @@ one_center = False;
 norm = 1;
 temp_normalization = False
 typennum = 0;
-sigma = 0
-channel_mixing = True
-a = 0 (PCA and YCbCr options are commented later in the code)
-C_indices = [[(0,0)], [(1,0)], [(1,0)], [(0,1)]]
+sigma = 0;
+channel_mixing = True;
+a = 0 (PCA and YCbCr options are commented later in the code);
+C_indices = [[(0,0)], [(1,0)], [(1,0)], [(0,1)]];
 (inv_comb of no relevance when channel_mixing=True)
