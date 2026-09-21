@@ -3,7 +3,7 @@ The repository now comprises code for two journal articles. The first has alread
 
 The PR article introduces blur invariants to color (in general multispectral) images. Its novelty are the so-called cross-channel blur invariants that employ linkage between channels.
 
-The IEEE TIP article comes up with features that are invariant to both blur and linear channel-mixing at the same time. This image degradation model is more general.
+The IVC article comes up with features that are invariant to both blur and linear channel-mixing at the same time. This image degradation model is more general.
 
 The invariants are implemented in the image domain using moments of images. The blur invariants can be found in "blur_invariants/blur_invariants.py", the invariants to blur and channel-mixing in "blur_n_channelmixing_invariants/blur_channelmixing_invariants.py".
 
@@ -12,7 +12,7 @@ Template matching experiments can be run by "run_template_matching.py". There is
 
 The user can switch between the invariants (blur vs blur-and-channel-mixing) by a boolean parameter "channel_mixing" in run_template_matching.py.
 
-The IEEE TIP article contains template matching experiment using DINOv2 features. This is implemented in DINOv2_template_matching.py. The settings used in the paper is:  mid_block_idx = 9, P = 14, separate_crops = True, tokens_mode = 'except_cls', patch_norm = True.
+The IVC article contains template matching experiment using DINOv2 features. This is implemented in DINOv2_template_matching.py. The settings used in the paper is:  mid_block_idx = 9, P = 14, separate_crops = True, tokens_mode = 'except_cls', patch_norm = True.
 The DINOv2 script is fully functional, but I would like to get to some code cleaning for better readibility. In the real-blur experiment, DINOv2 was run on JPEG versions of the images, as it was mostly trained on JPEG data, CR2 was used for the invariants to better preserve the convolutional model.
 
 # Blur Invariants (PR article)
@@ -74,10 +74,10 @@ typennum = 0
 The experiment with recognizing of centrosymmetric objects is present in "recognition_of_centrosymmetric_objects" folder including the road signs images. In the PR article, we briefly explain that single-channel blur invariants constructed for N2-fold symmetric PSFs are trivial for centrosymmetric objects, but the new cross-channel invariants are able to dinstinguish between them. Eventually, there was not enough space for this experiments due to revisions, but I keep it in the repository.
 ![road_signs_together](https://github.com/user-attachments/assets/62dc8cfd-189d-45ee-b824-ef4f97561e6e)
 
-# Invariants to blur and channel-mixing (IEEE TIP article)
+# Invariants to blur and channel-mixing (IVC article)
 The implementation of the invariants can be found in "blur_n_channelmixing_invariants/blur_channelmixing_invariants.py". There is a 2-channel and a 3-channel version (but formula for a general c-channel image is written in the article).
 
-### Parameter setting for the IEEE TIP paper:
+### Parameter setting for the IVC paper:
 synthetic blur experiment:
 subfolder = 'synthetic_blur_experiment';
 full_img_name in [f"sharp{i:02}.JPG" for i in range(0, 15)];
