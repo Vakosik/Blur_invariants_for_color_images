@@ -1,5 +1,5 @@
 # Repository content
-The repository now comprises code for two journal articles. The first has already been published in Pattern Recognition https://doi.org/10.1016/j.patcog.2025.112358. The second paper has been submitted to IEEE Transactions on Image Processing.
+The repository now comprises code for two journal articles. The first has already been published in Pattern Recognition https://doi.org/10.1016/j.patcog.2025.112358. The second paper has been submitted to Image and Vision Computing.
 
 The PR article introduces blur invariants to color (in general multispectral) images. Its novelty are the so-called cross-channel blur invariants that employ linkage between channels.
 
