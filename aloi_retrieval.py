@@ -12,8 +12,8 @@ the repo's same-size, zero-boundary convolution; pixels outside the frame are
 discarded. Use --padding to retain the full convolution support instead.
 Kernel sizes are in pixels AFTER optional downsampling (default: none).
 
-Use --snr-db 30 for additive, zero-mean Gaussian query noise AFTER blur and
-channel mixing. One noise realization is shared by all degradations of each
+Use --snr-db 30 for additive, zero-mean Gaussian query noise after blur and
+before channel mixing. One noise realization is shared by all degradations of each
 object; different objects get independent realizations. SNR is measured against
 the prepared sharp image: 10*log10(mean(image**2)/sigma**2), averaged over all
 pixels and RGB channels. No clipping is applied. Omit --snr-db for noise-free
@@ -172,11 +172,10 @@ def object_descriptors(path, order, downscale, padding, snr_db=None, invariants=
     queries = []
     for size in BLUR_SIZES:
         blurred = blur(image, size=size, btype="square")
+        noisy_blurred = blurred if noise is None else blurred + noise
         for a in MIXING_VALUES:
             matrix = np.array([[1 - 2*a, a, a], [a, 1 - 2*a, a], [a, a, 1 - 2*a]])
-            if noise is not None:
-                query = blurred + noise
-            query = mixing_channels(query, matrix)
+            query = mixing_channels(noisy_blurred, matrix)
             queries.append(image_descriptor(query, order, invariants))
     return reference, queries
 
@@ -270,7 +269,7 @@ def main():
         invs_comb=PR_COMBINATIONS if args.invariants == "pr_bi" else None,
         typen=1 if args.invariants == "pr_bi" else 0, blur_sizes=BLUR_SIZES,
         mixing_values=MIXING_VALUES, boundary="zero", convolution="same",
-        noise_model="one additive zero-mean Gaussian field per object, shared across its queries after blur and channel mixing; no clipping",
+        noise_model="one additive zero-mean Gaussian field per object, shared across its queries after blur and before channel mixing; no clipping",
         snr_definition="10*log10(mean(prepared_sharp_image**2)/expected_noise_power)",
         noise_seed=NOISE_SEED if args.snr_db is not None else None,
         matching="relative error with sharp-reference denominator; first object ID wins exact ties",
