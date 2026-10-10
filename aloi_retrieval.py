@@ -174,9 +174,9 @@ def object_descriptors(path, order, downscale, padding, snr_db=None, invariants=
         blurred = blur(image, size=size, btype="square")
         for a in MIXING_VALUES:
             matrix = np.array([[1 - 2*a, a, a], [a, 1 - 2*a, a], [a, a, 1 - 2*a]])
-            query = mixing_channels(blurred, matrix)
             if noise is not None:
-                query = query + noise
+                query = blurred + noise
+            query = mixing_channels(query, matrix)
             queries.append(image_descriptor(query, order, invariants))
     return reference, queries
 
