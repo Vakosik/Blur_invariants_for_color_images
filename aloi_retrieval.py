@@ -12,7 +12,17 @@ the repo's same-size, zero-boundary convolution; pixels outside the frame are
 discarded. Use --padding to retain the full convolution support instead.
 Kernel sizes are in pixels AFTER optional downsampling (default: none).
 
-Outputs: results.csv (24 grid points), retrievals.npz (per-query predictions,
+Use --snr-db 30 for additive, zero-mean Gaussian query noise AFTER blur and
+channel mixing. One noise realization is shared by all degradations of each
+object; different objects get independent realizations. SNR is measured against
+the prepared sharp image: 10*log10(mean(image**2)/sigma**2), averaged over all
+pixels and RGB channels. No clipping is applied. Omit --snr-db for noise-free
+queries. Fixed seeds per object make results reproducible across worker counts.
+Use --invariants pr_bi for the PR blur invariants ('0', '1', '2', '10', '21')
+with scaling normalization (typen=1); the default 'joint' preserves the
+current joint blur/channel-mixing invariants. Both use the same fixed center.
+
+Outputs: results.csv (one row per grid point), retrievals.npz (per-query predictions,
 distances, features, and grid axes), and settings.json (experiment metadata).
 No degraded images are saved. --limit is only for smaller smoke experiments;
 the default requires every object ID from 1 through 1000, with no omissions.
@@ -35,7 +45,7 @@ import numpy as np
 from joblib import Parallel, delayed, parallel_config
 from tqdm import tqdm
 
-from blur_invariants.blur_invariants import central_moments
+from blur_invariants.blur_invariants import central_moments, blur_invariants
 from blur_n_channelmixing_invariants.blur_channelmixing_invariants import (
     blur_channel_mixing_invariants_3channels,
 )
@@ -43,9 +53,11 @@ from detect_position import compare_invariants
 from transformations import blur, mixing_channels
 
 
-BLUR_SIZES = (0,) + tuple(range(9, 70, 12))
+BLUR_SIZES = (0,) + tuple(range(11, 72, 12))
 MIXING_VALUES = (0.0, 0.1, 0.2, 0.4)
 C_INDICES = [[(0, 0)], [(1, 0)], [(1, 0)], [(0, 1)]]
+PR_COMBINATIONS = ('0', '1', '2', '10', '21')
+NOISE_SEED = 0
 N_OBJECTS = 1000
 
 
@@ -96,27 +108,51 @@ def select_samples(data_dir, object_ids):
     return [selected[object_id] for object_id in object_ids]
 
 
-def image_descriptor(image, order):
-    """Use the repo's joint invariants and fixed-center moment convention."""
+def image_descriptor(image, order, invariants="joint"):
+    """Use the selected repo invariants and the fixed-center moment convention."""
     tx, ty = image.shape[0] / 2, image.shape[1] / 2
     moments = np.stack([
         central_moments(image[:, :, channel], r=order, tx=tx, ty=ty)
         for channel in range(3)
     ], axis=-1)
-    # The existing invariant routine replaces singular denominators with ones.
-    # Mark those descriptors invalid so they cannot produce spurious matches.
-    denominator = np.linalg.det(moments[[1, 0, 0], [0, 1, 0], :])
-    if denominator == 0 or not np.isfinite(denominator):
-        return None
     with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
-        features, _ = blur_channel_mixing_invariants_3channels(
-            moments, C_INDICES, order, N=2, typec=1, typex=0
-        )
+        if invariants == "joint":
+            # The existing joint routine replaces singular denominators with ones.
+            # Mark those descriptors invalid to prevent spurious matches.
+            denominator = np.linalg.det(moments[[1, 0, 0], [0, 1, 0], :])
+            if denominator == 0 or not np.isfinite(denominator):
+                return None
+            features, _ = blur_channel_mixing_invariants_3channels(
+                moments, C_INDICES, order, N=2, typec=1, typex=0
+            )
+        elif invariants == "pr_bi":
+            blocks = []
+            for combination in PR_COMBINATIONS:
+                second = moments[:, :, int(combination[1])] if len(combination) == 2 else None
+                block, _ = blur_invariants(
+                    moments[:, :, int(combination[0])], order, N=2,
+                    cmm2=second, typec=1, typex=0, typen=0,
+                )
+                blocks.append(block)
+            features = np.concatenate(blocks)
+        else:
+            raise ValueError(f"Unknown invariants: {invariants}")
     return features if np.isfinite(features).all() else None
 
 
-def object_descriptors(path, order, downscale, padding):
-    """Load one object, compute its reference and all 24 query descriptors."""
+def make_query_noise(image, snr_db, rng):
+    """Draw one noise field, scaled to the prepared sharp image's power."""
+    if snr_db is None:
+        return None
+    with np.errstate(over="ignore", invalid="ignore"):
+        sigma = np.sqrt(np.mean(image**2)) * np.power(10.0, -snr_db / 20)
+    if not np.isfinite(sigma):
+        raise ValueError("SNR produces a non-finite noise standard deviation")
+    return rng.normal(0, sigma, size=image.shape)
+
+
+def object_descriptors(path, order, downscale, padding, snr_db=None, invariants="joint"):
+    """Load one object, compute its sharp reference and all query descriptors."""
     image = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     if image is None or image.ndim != 3 or image.shape[2] != 3 or image.dtype != np.uint8:
         raise ValueError(f"Expected an 8-bit RGB PNG: {path}")
@@ -129,21 +165,28 @@ def object_descriptors(path, order, downscale, padding):
     if padding:
         margin = max(BLUR_SIZES) // 2
         image = np.pad(image, ((margin, margin), (margin, margin), (0, 0)))
-    reference = image_descriptor(image, order)
+    reference = image_descriptor(image, order, invariants)
+    object_id = int(path.stem.split("_")[0])
+    rng = np.random.default_rng(np.random.SeedSequence([NOISE_SEED, object_id]))
+    noise = make_query_noise(image, snr_db, rng)
     queries = []
     for size in BLUR_SIZES:
         blurred = blur(image, size=size, btype="square")
         for a in MIXING_VALUES:
             matrix = np.array([[1 - 2*a, a, a], [a, 1 - 2*a, a], [a, a, 1 - 2*a]])
-            queries.append(image_descriptor(mixing_channels(blurred, matrix), order))
+            query = mixing_channels(blurred, matrix)
+            if noise is not None:
+                query = query + noise
+            queries.append(image_descriptor(query, order, invariants))
     return reference, queries
 
 
-def run_experiment(paths, object_ids, order=5, downscale=1, padding=False, jobs=1, norm=1):
+def run_experiment(paths, object_ids, order=5, downscale=1, padding=False, jobs=1, norm=1,
+                   snr_db=None, invariants="joint"):
     """Return grid statistics and predictions; invalid queries count as failures."""
     with parallel_config(backend="loky", inner_max_num_threads=1):
         descriptors = Parallel(n_jobs=jobs)(
-            delayed(object_descriptors)(path, order, downscale, padding)
+            delayed(object_descriptors)(path, order, downscale, padding, snr_db, invariants)
             for path in tqdm(paths, desc="Object descriptors")
         )
     exemplar = next((ref for ref, _ in descriptors if ref is not None), None)
@@ -189,19 +232,26 @@ def main():
     parser.add_argument("--jobs", type=int, default=1, help="Parallel object workers; -1 uses all CPUs")
     parser.add_argument("--order", type=int, default=5)
     parser.add_argument("--norm", type=int, choices=(1, 2), default=1)
+    parser.add_argument("--snr-db", "--snr", type=float, default=None,
+                        help="Query Gaussian-noise SNR in dB; omitted means no noise")
+    parser.add_argument("--invariants", choices=("joint", "pr_bi"), default="joint",
+                        help="Joint invariants (default) or PR blur invariants")
     parser.add_argument("--downscale", type=int, default=1)
     parser.add_argument("--padding", action="store_true", help="Zero-pad both references and queries by 34 pixels")
     parser.add_argument("--limit", type=int, default=N_OBJECTS, help="First N objects; default 1000")
     args = parser.parse_args()
     if not 1 <= args.limit <= N_OBJECTS or args.order < 2 or args.downscale < 1 or args.jobs == 0:
         parser.error("Require 1 <= limit <= 1000, order >= 2, downscale >= 1, and jobs != 0")
+    if args.snr_db is not None and not np.isfinite(args.snr_db):
+        parser.error("SNR must be a finite number of dB; omit --snr-db for no noise")
     object_ids = np.arange(1, args.limit + 1)
     if args.download:
         for object_id in tqdm(object_ids, desc="Download r0 samples"):
             download_sample(object_id, args.data_dir)
     paths = select_samples(args.data_dir, object_ids)
     print(f"Retrieving {len(paths)} degraded queries per grid point against {len(paths)} sharp references.")
-    results = run_experiment(paths, object_ids, args.order, args.downscale, args.padding, args.jobs, args.norm)
+    results = run_experiment(paths, object_ids, args.order, args.downscale, args.padding,
+                             args.jobs, args.norm, args.snr_db, args.invariants)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     with (args.output_dir / "results.csv").open("w", newline="") as output:
         writer = csv.writer(output)
@@ -214,9 +264,15 @@ def main():
     np.savez_compressed(args.output_dir / "retrievals.npz", **results)
     settings = {key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items()}
     settings.update(
-        view="r0", method="joint blur/channel-mixing invariants", N=2, complex=False,
-        one_center=False, C_indices=C_INDICES, blur_sizes=BLUR_SIZES,
+        view="r0", method="PR blur invariants" if args.invariants == "pr_bi" else "joint blur/channel-mixing invariants",
+        N=2, complex=False, one_center=False,
+        C_indices=C_INDICES if args.invariants == "joint" else None,
+        invs_comb=PR_COMBINATIONS if args.invariants == "pr_bi" else None,
+        typen=1 if args.invariants == "pr_bi" else 0, blur_sizes=BLUR_SIZES,
         mixing_values=MIXING_VALUES, boundary="zero", convolution="same",
+        noise_model="one additive zero-mean Gaussian field per object, shared across its queries after blur and channel mixing; no clipping",
+        snr_definition="10*log10(mean(prepared_sharp_image**2)/expected_noise_power)",
+        noise_seed=NOISE_SEED if args.snr_db is not None else None,
         matching="relative error with sharp-reference denominator; first object ID wins exact ties",
         invalid_references=int(results["invalid_references"]),
         samples=[str(path.resolve()) for path in paths],
