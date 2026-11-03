@@ -1,38 +1,3 @@
-"""Retrieve degraded ALOI images against one sharp RGB reference per object.
-
-Example (downloads and retains only the r0 PNG of each of the 1,000 objects):
-    python aloi_retrieval.py --download --jobs 4
-
-For an existing extracted ALOI collection:
-    python aloi_retrieval.py --data-dir /path/to/aloi/png --jobs 4
-
-Defaults follow the joint-invariant experiment in README.md: geometric moments,
-order 5, N=2, a fixed image center, and L1 relative-error matching. Blur uses
-the repo's same-size, zero-boundary convolution; pixels outside the frame are
-discarded. Use --padding to retain the full convolution support instead.
-Kernel sizes are in pixels AFTER optional downsampling (default: none).
-
-Use --snr-db 30 for additive, zero-mean Gaussian query noise after blur and
-before channel mixing. One noise realization is shared by all degradations of each
-object; different objects get independent realizations. SNR is measured against
-the prepared sharp image: 10*log10(mean(image**2)/sigma**2), averaged over all
-pixels and RGB channels. No clipping is applied. Omit --snr-db for noise-free
-queries. Fixed seeds per object make results reproducible across worker counts.
-Use --invariants pr_bi for the PR blur invariants ('0', '1', '2', '10', '21')
-with scaling normalization (typen=1); the default 'joint' preserves the
-current joint blur/channel-mixing invariants. Both use the same fixed center.
-
-Outputs: results.csv (one row per grid point), retrievals.npz (per-query predictions,
-distances, features, and grid axes), and settings.json (experiment metadata).
-No degraded images are saved. --limit is only for smaller smoke experiments;
-the default requires every object ID from 1 through 1000, with no omissions.
-
-ALOI: https://aloi.science.uva.nl/aloi/download.html
-Please cite Geusebroek, Burghouts, and Smeulders, IJCV 61(1), 103–112 (2005).
-Dependencies are those used by the repo: numpy, scipy, opencv-python,
-scikit-image, scikit-learn, joblib, tqdm.
-"""
-
 import argparse
 import csv
 import json
@@ -252,7 +217,7 @@ def main():
     results = run_experiment(paths, object_ids, args.order, args.downscale, args.padding,
                              args.jobs, args.norm, args.snr_db, args.invariants)
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    with (args.output_dir / "results.csv").open("w", newline="") as output:
+    with (args.output_dir / "blurchannelmixing_invariants_noise_15db.csv").open("w", newline="") as output:
         writer = csv.writer(output)
         writer.writerow(["blur_size", "a", "correct", "total", "percent", "invalid_queries"])
         for b, size in enumerate(BLUR_SIZES):
