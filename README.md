@@ -101,8 +101,8 @@ C_indices = [[(0,0)], [(1,0)], [(1,0)], [(0,1)]];
 
 real blur experiment:
 subfolder = 'real_blur_experiment';
-full_img_name in ["sharp00.CR2", "sharp01_alt.CR2", "sharp02_alt.CR2"];
-blur_type in ["blurred00.CR2", "blurred01_alt.CR2", "blurred02_alt.CR2"];
+full_img_name in ["sharp00.CR2", "sharp01_alt.CR2", "sharp02_alt.CR2", "sharp03.CR2", "sharp04.CR2", "sharp05.CR2", "sharp06.CR2"];
+blur_type in ["blurred00.CR2", "blurred01_alt.CR2", "blurred02_alt.CR2", "blurred03.CR2", "blurred04.CR2", "blurred05.CR2", "blurred06.CR2"];
 size_of_blur = 0;
 selected_templates = img_name + "_100temp_positions.npy";
 temp_sz = np.arange(56, 155, 14)
